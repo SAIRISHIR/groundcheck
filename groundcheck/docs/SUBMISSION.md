@@ -4,8 +4,9 @@ Copy each section into the matching Devpost field. Fill in the three links
 marked TODO before submitting.
 
 - **Demo video:** TODO (YouTube or Vimeo link, under 5 minutes, see DEMO-SCRIPT.md)
-- **Install link:** TODO (Developer console → Groundcheck → Distribution, production environment)
-- **Code:** TODO (public repository link)
+- **Install link:** https://developer.atlassian.com/console/install/12056e4d-e7ec-4051-a307-580749451977?signature=AYABePjmTD2nR%2FQ5%2BmJrhZKL6t8AAAADAAdhd3Mta21zAEthcm46YXdzOmttczp1cy13ZXN0LTI6NzA5NTg3ODM1MjQzOmtleS83MDVlZDY3MC1mNTdjLTQxYjUtOWY5Yi1lM2YyZGNjMTQ2ZTcAuAECAQB4CxqLTo9l4lqXuFjNim1xJM%2Bp%2F3TVP9xHS2BrU5DRRucBFxs1v0ASFxA7KHArneH15gAAAH4wfAYJKoZIhvcNAQcGoG8wbQIBADBoBgkqhkiG9w0BBwEwHgYJYIZIAWUDBAEuMBEEDHNgvHd%2F034l38EIOQIBEIA7dSBib2S%2F5X0dm%2FSgTgvsMFhCbYTbdE%2FghpG3%2BL0ITYWz2sD6kMaw20im7v3zyw4Vhu1S1Edl4BQrOPMAB2F3cy1rbXMAS2Fybjphd3M6a21zOmV1LXdlc3QtMTo3MDk1ODc4MzUyNDM6a2V5LzQ2MzBjZTZiLTAwYzMtNGRlMi04NzdiLTYyN2UyMDYwZTVjYwC4AQICAHi9bVMAkme4qVQX1fQHo6ePw3H40A7cGfz7yrmSfBWMXgGJPKgnOyziggceGmKwG6%2FSAAAAfjB8BgkqhkiG9w0BBwagbzBtAgEAMGgGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMW%2FpCagHcGtkqkdtWAgEQgDtyQd5Ca%2F620n7nibHUwEPNnDMvMuFSUdcemyToux3bCn%2FUt3Tc2y8Hs5fi3LGeGM5PriTMQwRWRwazhgAHYXdzLWttcwBLYXJuOmF3czprbXM6dXMtZWFzdC0xOjcwOTU4NzgzNTI0MzprZXkvNmMxMjBiYTAtNGNkNS00OTg1LWI4MmUtNDBhMDQ5NTJjYzU3ALgBAgIAeDYASx0XCjkny4iLV6vz%2BKtEGSGT6kdt0QRpkn6D%2FlVEAcVAhES124idgB8rSdjRx4gAAAB%2BMHwGCSqGSIb3DQEHBqBvMG0CAQAwaAYJKoZIhvcNAQcBMB4GCWCGSAFlAwQBLjARBAxihZVdmNvv0pHFFVgCARCAO5d5oMtpB8umkyKrC%2Ff5r42fsIF9cbfnU956W%2BL%2F88vMjQIo8SEEJ5nH%2BMUEBtlV6Yictwo2bOCaY3fvAgAAAAAMAAAQAAAAAAAAAAAAAAAAAB16LX%2F2CxpeQrWe6YiMn4r%2F%2F%2F%2F%2FAAAAAQAAAAAAAAAAAAAAAQAAADJohznPJbTJbPifFVWr%2BCfUIEHLXBh1h0VBjaTy7JeLjQZYGCf7TakSkvDNY3U3rMjYv08E71FygF%2FYVpvmGRQwBYQ%3D&product=jira&product=confluence
+  (installs the latest **production** deployment; redeploy to production before submitting so judges get the final version)
+- **Code:** https://github.com/SAIRISHIR/groundcheck
 
 ## Testing instructions (paste into the Devpost "testing instructions" field)
 
