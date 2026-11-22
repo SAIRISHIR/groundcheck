@@ -1,0 +1,14 @@
+﻿node_modules/
+dist/
+build/
+static/*/build/
+.env
+.env.*
+*.log
+.DS_Store
+coverage/
+
+# Local design preview and checks
+**/preview-build/
+.taste-skill/
+

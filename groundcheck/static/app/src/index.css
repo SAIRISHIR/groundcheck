@@ -1,0 +1,413 @@
+﻿/*
+ * Groundcheck: terminal design system.
+ *
+ * Style: "data terminal". A dark screen read in long sessions: near-black
+ * ground, cards one step darker, figures in a monospace whose digits stack,
+ * and one amber accent used only as a 1px selection line and on the product
+ * mark. Colour is reserved for verdicts (data), never for chrome.
+ *
+ * Forge's content security policy blocks inline <style> tags and external
+ * font hosts, so this file is bundled by Vite and the fonts are bundled too.
+ *
+ * Every text colour below reaches 4.5:1 on the surface it sits on, and every
+ * chart mark 3:1 (computed, not eyeballed). The verdict hues passed the
+ * colour-blind separation check on the dark surface.
+ */
+@import '@fontsource/public-sans/latin-400.css';
+@import '@fontsource/public-sans/latin-500.css';
+@import '@fontsource/public-sans/latin-600.css';
+@import '@fontsource/ibm-plex-mono/latin-400.css';
+@import '@fontsource/ibm-plex-mono/latin-500.css';
+
+:root {
+  color-scheme: dark;
+
+  /* Surfaces: the ground, cards one step darker, raised wells one step lighter. */
+  --ground: #141416;
+  --surface: #0c0c0e;
+  --raised: #1d1d21;
+  --hover: #17171a;
+  --border: #242428;
+  --rule: #1b1b1f;
+  --control: #3a3a3f;
+
+  /* Ink: two greys that read apart. */
+  --text: #f2f2f3;
+  --muted: #a1a3aa;
+  --faint: #8b8d94;
+
+  /* The one accent: selection lines and the mark. */
+  --accent: #f0a530;
+
+  /* Verdicts. Marks (bars, dots) and the paler inks used for text on tints. */
+  --verified: #36a986;
+  --contradicted: #c9384f;
+  --conflict: #5a96e8;
+  --unrecorded: #5f6168;
+  --verified-ink: #5fc39c;  --verified-bg: #11211b;
+  --contradicted-ink: #f07188; --contradicted-bg: #2a161c;
+  --conflict-ink: #86b4f0;  --conflict-bg: #131d2b;
+  --neutral-ink: #bdbdc0;   --neutral-bg: #1d1d21;
+  --warning-ink: #e3b45a;   --warning-bg: #262014;
+
+  --grid: #232327;
+  --shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+
+  --radius-card: 6px;
+  --radius-chip: 3px;
+  --gap: 16px;
+  --pad: 24px;
+  --card-pad: 20px;
+  --row: 42px;
+  --control-height: 30px;
+
+  --font: 'Public Sans', Inter, system-ui, sans-serif;
+  --mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Consolas, monospace;
+  --fs-title: 22px;
+  --fs-lead: 34px;
+  --fs-kpi: 20px;
+  --fs-section: 14px;
+  --fs-body: 13px;
+  --fs-small: 12px;
+}
+
+* { box-sizing: border-box; }
+
+html, body { margin: 0; background: var(--ground); }
+body {
+  font-family: var(--font);
+  font-size: var(--fs-body);
+  line-height: 20px;
+  color: var(--text);
+  font-variant-numeric: tabular-nums; /* digits keep their width everywhere */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+::selection { background: #f0a53040; color: var(--text); }
+
+h1, h2, h3, p { margin: 0; }
+a { color: var(--text); text-decoration: none; }
+a:hover { text-decoration: underline; text-decoration-color: var(--accent); text-underline-offset: 3px; }
+:focus-visible { outline: 1px solid var(--accent); outline-offset: 2px; }
+
+/* Figures: a monospace whose digits stack, for every number, time, key and id. */
+.num, .mono { font-family: var(--mono); font-variant-numeric: tabular-nums; letter-spacing: 0; }
+.muted { color: var(--muted); }
+.faint { color: var(--faint); }
+.small { font-size: var(--fs-small); line-height: 16px; }
+.unit { color: var(--faint); font-size: 0.72em; margin-left: 2px; }
+.dash { color: var(--faint); }
+
+/* ------------------------------------------------------------------------
+ * Shell: the terminal bar. Product mark and name, scope, live source status.
+ * ---------------------------------------------------------------------- */
+.term { min-height: 100vh; }
+.term-bar {
+  display: flex; align-items: center; gap: 20px;
+  height: 44px; padding: 0 var(--pad);
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+.brand { display: flex; align-items: center; gap: 10px; flex: none; }
+.brand__name { font-weight: 600; font-size: 14px; }
+.brand__scope { color: var(--faint); font-size: var(--fs-small); }
+.status-line {
+  display: flex; align-items: center; gap: 18px;
+  margin-left: auto; min-width: 0; overflow: hidden;
+  font-size: var(--fs-small); color: var(--muted); white-space: nowrap;
+}
+.status-item { display: inline-flex; align-items: center; gap: 6px; }
+.status-summary { display: none; align-items: center; gap: 6px; margin-left: auto; color: var(--muted); font-size: var(--fs-small); white-space: nowrap; }
+.status-item .num { color: var(--faint); }
+.dot { width: 6px; height: 6px; border-radius: 50%; flex: none; background: var(--unrecorded); }
+.dot--ok { background: var(--verified); }
+.dot--down { background: var(--contradicted); }
+
+.icon-button {
+  display: inline-grid; place-items: center; flex: none;
+  width: var(--control-height); height: var(--control-height);
+  border: 1px solid var(--control); border-radius: var(--radius-chip);
+  background: transparent; color: var(--muted); cursor: pointer;
+}
+.icon-button:hover { color: var(--text); border-color: var(--faint); }
+.icon-button:active { transform: translateY(1px); }
+.icon-button[aria-busy='true'] svg { animation: spin 0.9s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ------------------------------------------------------------------------
+ * Canvas, title row, panels.
+ * Grid: 12 columns, 16px gap. Rows below use spans 12, 8+4 and 7+5, so every
+ * panel lands on the canvas's left and right edges.
+ * ---------------------------------------------------------------------- */
+.canvas { padding: 20px var(--pad) 40px; display: grid; gap: var(--gap); max-width: 1440px; }
+.title-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; padding-bottom: 4px; }
+.title-row h1 { font-size: var(--fs-title); line-height: 28px; font-weight: 600; letter-spacing: -0.01em; }
+.title-row p { color: var(--muted); margin-top: 4px; max-width: 96ch; }
+.stamp { color: var(--faint); font-size: var(--fs-small); white-space: nowrap; }
+
+.grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--gap); align-items: start; }
+.span-12 { grid-column: span 12; }
+.span-8 { grid-column: span 8; }
+.span-7 { grid-column: span 7; }
+.span-5 { grid-column: span 5; }
+.span-4 { grid-column: span 4; }
+.stretch { align-self: stretch; }
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  min-width: 0;
+}
+.panel__head {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  padding: 14px var(--card-pad) 0;
+}
+.panel__title { font-size: var(--fs-section); font-weight: 600; }
+.panel__meta { margin-left: auto; color: var(--faint); font-size: var(--fs-small); }
+.panel__body { padding: 14px var(--card-pad) var(--card-pad); }
+.panel__foot {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px var(--card-pad); border-top: 1px solid var(--rule);
+  color: var(--faint); font-size: var(--fs-small);
+}
+
+/* ------------------------------------------------------------------------
+ * Lead: the screen's answer and the verdict strip that explains it.
+ * ---------------------------------------------------------------------- */
+.lead { display: grid; grid-template-columns: minmax(220px, 300px) 1fr; }
+.lead__answer { padding: 20px var(--card-pad); border-right: 1px solid var(--rule); }
+.lead__label { color: var(--muted); }
+.lead__figure { font-family: var(--mono); font-size: var(--fs-lead); line-height: 42px; font-weight: 500; margin-top: 6px; letter-spacing: -0.02em; }
+.lead__figure--accent { color: var(--accent); } /* the screen's main data element carries the one hue */
+.lead__sub { color: var(--muted); margin-top: 6px; }
+.lead__strip { display: flex; flex-direction: column; min-width: 0; }
+
+.kpis { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.kpi { padding: 20px 16px 16px; border-left: 1px solid var(--rule); min-width: 0; }
+.kpi:first-child { border-left: 0; }
+.kpi__label { display: flex; align-items: center; gap: 6px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.kpi__value { font-family: var(--mono); font-variant-numeric: tabular-nums; font-size: var(--fs-kpi); line-height: 28px; margin-top: 6px; }
+.kpi__sub { color: var(--faint); font-size: var(--fs-small); font-family: var(--mono); }
+.kpi__sub--text { font-family: var(--font); }
+.swatch { width: 8px; height: 8px; border-radius: 1px; flex: none; }
+.swatch--outline { background: transparent !important; box-shadow: inset 0 0 0 1px var(--faint); /* taste-skill-ignore: a 1px inset line (selection or outlined swatch), not a shadow */ }
+
+/* The composition bar: one 100% stacked bar, 2px seams in the surface colour. */
+.composition { display: flex; gap: 2px; height: 10px; margin: 4px 16px 18px; }
+.composition > span { display: block; height: 100%; min-width: 2px; }
+.composition > span:first-child { border-radius: 2px 0 0 2px; }
+.composition > span:last-child { border-radius: 0 2px 2px 0; }
+.composition--empty { background: var(--raised); border-radius: 2px; }
+
+/* ------------------------------------------------------------------------
+ * Charts.
+ * ---------------------------------------------------------------------- */
+.chart { display: block; width: 100%; overflow: visible; }
+.chart text { font-family: var(--mono); font-size: 11px; fill: var(--faint); }
+.chart .gridline { stroke: var(--grid); stroke-width: 1; }
+.chart .baseline { stroke: var(--control); stroke-width: 1; }
+.chart .hit { fill: transparent; cursor: crosshair; }
+.chart .hit:hover, .chart .hit.is-active { fill: #ffffff08; }
+.readout { display: flex; gap: 14px; flex-wrap: wrap; min-height: 20px; color: var(--muted); font-size: var(--fs-small); }
+.readout .num { color: var(--text); }
+.legend { display: flex; gap: 14px; flex-wrap: wrap; color: var(--muted); font-size: var(--fs-small); }
+.legend__item { display: inline-flex; align-items: center; gap: 6px; }
+
+/* ------------------------------------------------------------------------
+ * Tables: rules and alignment. Grey sentence-case headers, no bands, no zebra.
+ * ---------------------------------------------------------------------- */
+.table { width: 100%; border-collapse: collapse; }
+.table th {
+  height: 34px; padding: 0 12px; text-align: left;
+  font-weight: 400; font-size: var(--fs-small); color: var(--faint);
+  border-bottom: 1px solid var(--border); white-space: nowrap;
+  position: sticky; top: 0; background: var(--surface); z-index: 1;
+}
+.table td { height: var(--row); padding: 8px 12px; border-bottom: 1px solid var(--rule); vertical-align: middle; }
+.table tr:last-child td { border-bottom: 0; }
+.table th:first-child, .table td:first-child { padding-left: var(--card-pad); }
+.table th:last-child, .table td:last-child { padding-right: var(--card-pad); }
+.table .r { text-align: right; }
+.table .nowrap, .table td:first-child { white-space: nowrap; }
+.table td.num, .table td .num { white-space: nowrap; }
+.table .claim { max-width: 0; width: 46%; }
+.table .claim__text { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.table tbody tr.is-clickable { cursor: pointer; }
+.table tbody tr.is-clickable:hover td { background: var(--hover); }
+.table tbody tr.is-open td { background: var(--hover); border-bottom-color: transparent; }
+.table tbody tr.is-open td:first-child { box-shadow: inset 1px 0 0 var(--accent); /* taste-skill-ignore: a 1px inset line (selection or outlined swatch), not a shadow */ }
+.table tr.detail td { background: var(--hover); padding-top: 0; padding-bottom: 14px; height: auto; }
+.table tr.detail td:first-child { box-shadow: inset 1px 0 0 var(--accent); /* taste-skill-ignore: a 1px inset line (selection or outlined swatch), not a shadow */ }
+.scroll { max-height: 440px; overflow: auto; }
+.scroll::-webkit-scrollbar { width: 8px; height: 8px; }
+.scroll::-webkit-scrollbar-thumb { background: var(--control); border-radius: 4px; }
+.scroll::-webkit-scrollbar-track { background: transparent; }
+
+/* ------------------------------------------------------------------------
+ * Verdict pills: a pale-on-dark tint of the verdict's own hue. Never squeezed.
+ * ---------------------------------------------------------------------- */
+.pill {
+  display: inline-flex; align-items: center; gap: 6px; flex: none;
+  height: 20px; padding: 0 7px; border-radius: var(--radius-chip);
+  font-size: var(--fs-small); font-weight: 500; white-space: nowrap;
+}
+.pill::before { content: ''; width: 6px; height: 6px; border-radius: 1px; background: currentColor; }
+.pill--verified { background: var(--verified-bg); color: var(--verified-ink); }
+.pill--contradicted { background: var(--contradicted-bg); color: var(--contradicted-ink); }
+.pill--conflict { background: var(--conflict-bg); color: var(--conflict-ink); }
+.pill--neutral { background: var(--neutral-bg); color: var(--neutral-ink); }
+.pill--warning { background: var(--warning-bg); color: var(--warning-ink); }
+.pill--plain::before { display: none; }
+
+.tag { display: inline-flex; align-items: center; height: 18px; padding: 0 6px; border-radius: var(--radius-chip); background: var(--raised); color: var(--muted); font-size: 11px; white-space: nowrap; }
+
+/* Evidence lines inside an opened receipt. */
+.evidence { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.evidence li { display: grid; grid-template-columns: 76px 1fr; gap: 10px; align-items: baseline; }
+.evidence__stance { font-size: var(--fs-small); font-family: var(--mono); }
+.evidence__stance--yes { color: var(--verified-ink); }
+.evidence__stance--no { color: var(--contradicted-ink); }
+.evidence__quote { color: var(--text); }
+.evidence__source { color: var(--muted); }
+.reason { color: var(--muted); margin-top: 8px; }
+
+/* ------------------------------------------------------------------------
+ * The verdict tape: every recent check as one mark, oldest left, like a
+ * market tape. The signature element of the screen.
+ * ---------------------------------------------------------------------- */
+.tape { display: flex; gap: 2px; align-items: flex-end; height: 28px; overflow: hidden; }
+.tape__mark {
+  flex: 1 1 0; max-width: 18px; min-width: 4px; height: 100%;
+  border: 0; padding: 0; border-radius: 1px; cursor: pointer;
+}
+.tape__mark:hover, .tape__mark.is-active { outline: 1px solid var(--accent); outline-offset: 1px; }
+.tape__mark--outline { background: transparent !important; box-shadow: inset 0 0 0 1px var(--faint); /* taste-skill-ignore: a 1px inset line (selection or outlined swatch), not a shadow */ }
+
+/* ------------------------------------------------------------------------
+ * Controls.
+ * ---------------------------------------------------------------------- */
+.button {
+  display: inline-flex; align-items: center; gap: 8px; flex: none;
+  height: var(--control-height); padding: 0 12px;
+  font: inherit; font-weight: 500; color: #0c0c0e; background: var(--text);
+  border: 0; border-radius: var(--radius-chip); cursor: pointer;
+}
+.button:hover { background: #ffffff; }
+.button:active { transform: translateY(1px); }
+.button:disabled { cursor: default; background: var(--raised); color: var(--faint); }
+.button--secondary { background: transparent; color: var(--text); border: 1px solid var(--control); }
+.button--secondary:hover { background: var(--hover); border-color: var(--faint); }
+.text-button { font: inherit; color: var(--muted); background: none; border: 0; padding: 0; cursor: pointer; }
+.text-button:disabled { cursor: default; opacity: 0.6; }
+
+/* The "Check an answer" composer. */
+.field-label { display: block; color: var(--muted); margin-bottom: 8px; }
+.textarea {
+  display: block; width: 100%; min-height: 96px; resize: vertical;
+  padding: 10px 12px; font: inherit; line-height: 20px; color: var(--text);
+  background: var(--ground); border: 1px solid var(--control); border-radius: var(--radius-card);
+}
+.textarea:hover { border-color: var(--faint); }
+.textarea:focus { outline: none; border-color: var(--accent); }
+.composer-bar { display: flex; align-items: center; gap: 16px; margin-top: 12px; flex-wrap: wrap; }
+.checks--panel { padding: 0 var(--card-pad) 12px; }
+.text-button:hover { color: var(--text); }
+
+/* Segmented filter: the selection is a 1px accent line exactly as wide as its label. */
+.segments { display: inline-flex; gap: 14px; }
+.segments button {
+  font: inherit; font-size: var(--fs-small); color: var(--faint);
+  background: none; border: 0; padding: 0 0 4px; cursor: pointer;
+  box-shadow: inset 0 -1px 0 transparent; /* taste-skill-ignore: a 1px inset line (selection or outlined swatch), not a shadow */
+}
+.segments button:hover { color: var(--text); }
+.segments button[aria-pressed='true'] { color: var(--text); box-shadow: inset 0 -1px 0 var(--accent); /* taste-skill-ignore: a 1px inset line (selection or outlined swatch), not a shadow */ }
+
+/* Usage bar: the true ratio, both ends labelled. */
+.meter { display: grid; gap: 6px; }
+.meter__track { height: 4px; background: var(--raised); border-radius: 2px; overflow: hidden; }
+.meter__fill { height: 100%; background: var(--text); }
+.meter__ends { display: flex; justify-content: space-between; color: var(--faint); font-size: var(--fs-small); }
+
+/* Accuracy rows: a bar per checker at its true pass ratio. */
+.bars { display: grid; gap: 14px; }
+.bar-row { display: grid; grid-template-columns: minmax(120px, 190px) 1fr 64px; gap: 12px; align-items: center; }
+.bar-row__track { display: flex; gap: 2px; height: 8px; background: var(--raised); border-radius: 2px; overflow: hidden; }
+.bar-row__pass { background: var(--verified); height: 100%; }
+.bar-row__fail { background: var(--contradicted); height: 100%; }
+.bar-row__value { text-align: right; }
+
+/* Key-value well for the issue panel. */
+.kv { display: grid; grid-template-columns: max-content 1fr; gap: 0 16px; margin: 0; }
+.kv dt { color: var(--muted); padding: 7px 0; border-bottom: 1px solid var(--rule); }
+.kv dd { margin: 0; padding: 7px 0; border-bottom: 1px solid var(--rule); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; min-width: 0; }
+.kv dt:last-of-type, .kv dd:last-of-type { border-bottom: 0; }
+
+/* ------------------------------------------------------------------------
+ * States: loading bars at real size (no shimmer), empty sentences, errors.
+ * ---------------------------------------------------------------------- */
+.skel { display: inline-block; background: var(--raised); border-radius: 2px; vertical-align: middle; }
+.empty {
+  display: flex; align-items: center; min-height: 40px; padding: 10px 14px;
+  border: 1px dashed var(--control); border-radius: var(--radius-card);
+  color: var(--muted);
+}
+.error-line { display: flex; align-items: center; gap: 10px; color: var(--muted); }
+.error-line::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--contradicted); flex: none; }
+
+/* ------------------------------------------------------------------------
+ * Issue panel: the same system, compact.
+ * ---------------------------------------------------------------------- */
+.issue { padding: 14px 16px 16px; display: grid; gap: 14px; }
+.issue__head { display: flex; align-items: center; gap: 10px; }
+.issue__key { font-family: var(--mono); color: var(--muted); }
+.issue__summary { font-weight: 600; font-size: 14px; line-height: 20px; }
+.section-head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; }
+.section-head h2 { font-size: var(--fs-section); font-weight: 600; }
+.checks { list-style: none; margin: 0; padding: 0; }
+.check { padding: 10px 0; border-top: 1px solid var(--rule); }
+.check:first-child { border-top: 0; padding-top: 2px; }
+.check__head { display: flex; align-items: center; gap: 8px; }
+.check__time { margin-left: auto; color: var(--faint); font-size: var(--fs-small); }
+.check__claim { margin-top: 6px; overflow-wrap: anywhere; }
+.check .evidence { margin-top: 8px; }
+
+/* ------------------------------------------------------------------------
+ * Responsive: tablet stacks the side panels; phone turns tables into
+ * two-line rows and the KPI strip into a 2-column grid.
+ * ---------------------------------------------------------------------- */
+@media (max-width: 1100px) {
+  .span-8, .span-7, .span-5, .span-4 { grid-column: span 12; }
+  .status-line .status-item__ms { display: none; }
+}
+@media (max-width: 860px) {
+  .lead { grid-template-columns: 1fr; }
+  .lead__answer { border-right: 0; border-bottom: 1px solid var(--rule); }
+  .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .kpi { border-left: 0; border-top: 1px solid var(--rule); padding: 12px 16px; }
+  .kpi:nth-child(-n + 2) { border-top: 0; }
+  .kpi:last-child:nth-child(odd) { grid-column: span 2; }
+  .status-line { display: none; }
+  .status-summary { display: inline-flex; }
+  .brand__scope { display: none; }
+  .segments { overflow-x: auto; white-space: nowrap; max-width: 100%; }
+  .panel__meta { margin-left: 0; width: 100%; }
+}
+@media (max-width: 640px) {
+  :root { --pad: 16px; --card-pad: 16px; }
+  .title-row { flex-direction: column; align-items: flex-start; }
+  .table--stack thead { display: none; }
+  .table--stack tr { display: grid; grid-template-columns: auto 1fr auto; gap: 4px 10px; padding: 10px var(--card-pad); border-bottom: 1px solid var(--rule); }
+  .table--stack td { display: block; height: auto; padding: 0 !important; border: 0; }
+  .table--stack td.claim { grid-column: 1 / -1; order: 2; max-width: none; width: auto; }
+  .table--stack td.claim .claim__text { white-space: normal; }
+  .table--stack td.hide-phone { display: none; }
+  .table--stack tr.detail { display: block; }
+  .bar-row { grid-template-columns: 1fr 56px; }
+  .bar-row__track { grid-column: 1 / -1; order: 3; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
