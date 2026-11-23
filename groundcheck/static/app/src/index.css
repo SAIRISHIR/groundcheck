@@ -391,7 +391,9 @@ a:hover { text-decoration: underline; text-decoration-color: var(--accent); text
   .status-line { display: none; }
   .status-summary { display: inline-flex; }
   .brand__scope { display: none; }
-  .segments { overflow-x: auto; white-space: nowrap; max-width: 100%; }
+  /* The filter row scrolls sideways on narrow screens, without a visible bar. */
+  .segments { overflow-x: auto; white-space: nowrap; max-width: 100%; scrollbar-width: none; }
+  .segments::-webkit-scrollbar { display: none; }
   .panel__meta { margin-left: 0; width: 100%; }
 }
 @media (max-width: 640px) {

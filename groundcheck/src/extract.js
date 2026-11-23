@@ -22,6 +22,9 @@ For each factual claim, pick exactly one type:
 - "team": a person is on a team. Give person and team.
 - "doc": anything else that could be written in a plan, decision, note or page.
   Give claim: one full, standalone sentence (resolve "it", "they", "then").
+  Keep the original words, names, numbers and subjects. Never replace them
+  with generic words: "We roll back if…" stays "We roll back if…", not
+  "The system will roll back if…".
 
 One fact per claim: "ABC-1 is done and assigned to Priya" is two claims.
 Skip opinions, questions, greetings and advice. At most ${MAX_CLAIMS} claims.

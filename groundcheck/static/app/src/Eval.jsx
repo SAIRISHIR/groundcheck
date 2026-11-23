@@ -81,7 +81,11 @@ function LiveTest() {
     <Runner
       key={set?.at ?? 'none'}
       cases={set?.cases ?? null}
+      saved={set?.lastRun ?? null}
       runCase={(id) => invoke('runSelfTestCase', { id })}
+      onDone={(results) =>
+        invoke('saveSelfTestRun', { results }).then((lastRun) => lastRun && setSet((s) => s && { ...s, lastRun }))
+      }
       description={
         set
           ? `${set.cases.length} claims generated from this site ${shortTime(set.at)}: true facts and copies with one value changed`

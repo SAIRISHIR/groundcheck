@@ -35,7 +35,7 @@ Groundcheck works on any Jira site with Rovo; no demo data is needed.
    an MCP client (for example `claude mcp add --transport http groundcheck <url>`)
    and sign in.
 
-Notes: the **Demo data** tab of the accuracy test (64 known-answer claims)
+Notes: the **Demo data** tab of the accuracy test (65 known-answer claims)
 only applies to our demo site; the live test works anywhere. AI judging is
 capped at 300 calls per site per day.
 
@@ -106,7 +106,9 @@ data as the signed-in user.
 
 ## Accomplishments that we're proud of
 
-- **64 / 64** on a known-answer eval of traps (reassigned and reopened
+- **24 / 24** on a live self-test built from the site's own issues, pages
+  and teams, so the accuracy claim can be checked on any site.
+- **65 / 65** on a known-answer eval of traps (reassigned and reopened
   issues, look-alike issues, an archived plan, a plan Jira contradicts, prompt
   injections, invented facts), runnable by anyone from inside the app. Every
   miss we found along the way became a fix and a new eval case.

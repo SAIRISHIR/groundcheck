@@ -92,6 +92,7 @@ export const EVAL_SET = [
   doc('D25', 'The checkout v2 marketing budget is 2 million dollars', 'not_recorded', 'no budget is recorded'),
   doc('D26', 'Ryan Lee owns rollback', 'contradicted', 'no release named: the archived v1 page agrees, but the current plan wins'),
   doc('D27', 'The payments API load test at 2x Black Friday traffic is finished', 'contradicted', 'Jira shows DEMO-5 not done (overdue)'),
+  doc('D28', 'The system will roll back if the payment error rate stays above 5% for 10 minutes', 'contradicted', 'worded unlike the page (needs ranked search); the plan says 2%'),
 
   // --- Teamwork Graph -----------------------------------------------------
   team('T01', 'Max Taylor', 'Team Nova', 'verified'),

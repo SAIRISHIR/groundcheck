@@ -25,18 +25,27 @@ export async function searchPages(claim, pageTitle, limit = 3) {
   // A multi-word text search only matches pages containing EVERY word. So we
   // try, in order, until we have enough pages:
   //   1. all the topic words (what the claim is about, without its values),
-  //   2. the topic words with one word left out, for each word in turn. A
+  //   2. Confluence's own ranked search (CQL siteSearch, the engine behind
+  //      the search bar), which does not need every word to match. This finds
+  //      the page when the claim is worded differently from it, for example
+  //      "the system rolls back" against "we roll back",
+  //   3. the topic words with one word left out, for each word in turn. A
   //      wrong name in the claim ("Adyen is the payment processor") is a
   //      topic word that the right page doesn't contain, so leaving it out
   //      finds the page that contradicts it,
-  //   3. every word in the claim,
-  //   4. any topic word, re-ranked by how many topic words each hit contains.
+  //   4. every word in the claim,
+  //   5. any topic word, re-ranked by how many topic words each hit contains.
   const found = [];
   const add = (hits) => {
     for (const h of hits) if (!found.some((f) => f.id === h.id)) found.push(h);
   };
   const strict = (words) => runCql(`type = page AND text ~ "${cqlSafe(words.join(' '))}"`, limit);
   if (topic.length >= 2) add(await strict(topic));
+  if (found.length < limit && topic.length >= 2) {
+    // Ranked search can return loosely related pages, so take at most two:
+    // the strict searches below still get a chance to fill the last slot.
+    add((await runCql(`type = page AND siteSearch ~ "${cqlSafe(topic.join(' '))}"`, limit)).slice(0, 2));
+  }
   if (found.length < limit && topic.length >= 3) {
     const leaveOneOut = await Promise.all(topic.map((_, i) => strict(topic.filter((__, j) => j !== i))));
     // Pages found by more of these searches come first.

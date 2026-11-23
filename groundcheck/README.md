@@ -15,8 +15,10 @@ person asking. Every claim gets a verdict and a receipt:
 | **Sources disagree** | One record supports the claim and another contradicts it, for example a plan in Confluence that live Jira no longer matches. Groundcheck shows both. |
 | **Not recorded** | Nothing the person can see addresses the claim. |
 
-**Accuracy: 64 / 64** on the [eval set](src/evalSet.js) of known-answer
-claims about the demo data (34 Jira, 27 Confluence + Jira, 3 Teamwork Graph). The eval runs inside the app; see [Accuracy eval](#accuracy-eval).
+**Accuracy: 65 / 65** on the [eval set](src/evalSet.js) of known-answer
+claims about the demo data (34 Jira, 28 Confluence + Jira, 3 Teamwork Graph),
+and **24 / 24** on a live self-test that builds its claims from the site's own
+data. Both run inside the app; see [Accuracy eval](#accuracy-eval).
 
 Example, from the Groundcheck agent in Rovo:
 
@@ -106,7 +108,7 @@ True claims must come back Verified and changed ones Contradicted. Nothing is
 hardcoded, and the generated set is stored per user, so the browser never
 sends the claims it is scored on.
 
-**Demo data:** [`src/evalSet.js`](src/evalSet.js) holds 64 claims with known answers about the
+**Demo data:** [`src/evalSet.js`](src/evalSet.js) holds 65 claims with known answers about the
 demo data, built around traps: a reassigned issue, a reopened issue, look-alike
 issues, an unassigned issue, an archived plan with old values, a plan that Jira
 contradicts, two prompt injections, invented facts, and malformed input. Open
@@ -116,11 +118,16 @@ real checkers, as you, with no receipts saved.
 | Checker | Cases | Correct |
 |---|---|---|
 | Jira (exact) | 34 | 34 |
-| Confluence + Jira (AI judge) | 27 | 27 |
+| Confluence + Jira (AI judge) | 28 | 28 |
 | Teamwork Graph | 3 | 3 |
-| **Total** | **64** | **64** |
+| **Total** | **65** | **65** |
 
-Results from 22 November 2026 (app version 5.7.0). The history is in
+Results from 23 November 2026 (app version 5.16.0); the live self-test scored
+24 / 24 (16 Jira, 6 Confluence + Jira, 2 Teamwork Graph) on the same day. The
+newest case, D28, came from a click-test of *Check an answer*: "We roll back
+if the payment error rate stays above 5%…" was worded unlike the rollout plan
+and came back Not recorded, until search gained a ranked step (CQL
+`siteSearch`) that does not need every word to match. The history is in
 [`demo-data/DEMO-ground-truth.md`](demo-data/DEMO-ground-truth.md): the first
 run scored 61/62, and the miss ("Adyen is the payment processor" came back Not
 recorded) led to the leave-one-out search above. A live Rovo test then showed
@@ -211,7 +218,7 @@ See [PRIVACY.md](PRIVACY.md).
 | `src/judge.js` | AI judge prompt and verdict assembly |
 | `src/confluence.js` | Confluence search and page reading |
 | `src/jira.js` | Related Jira issues for a document claim |
-| `src/evalSet.js` | The 64-claim demo-data eval |
+| `src/evalSet.js` | The 65-claim demo-data eval |
 | `src/selftest.js` | The live self-test built from the site's own data |
 | `src/extract.js` | Splits pasted text into claims for "Check an answer" |
 | `src/graph.js` | Teamwork Graph persisted-query client |

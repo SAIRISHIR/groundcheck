@@ -137,6 +137,17 @@ export function evidenceSummary(ev) {
   return null;
 }
 
+/**
+ * A quote as people read it: table-cell separators ("a | b |") from
+ * Confluence tables and Jira record lines become " · ". Display only; the
+ * stored quote is what was verified against the page.
+ */
+export const readableQuote = (q) =>
+  String(q ?? '')
+    .replace(/\s*\|\s*/g, ' · ')
+    .replace(/^(\s*·\s*)+|(\s*·\s*)+$/g, '')
+    .trim();
+
 /** The full evidence behind a verdict. */
 export function Evidence({ evidence }) {
   if (!evidence) return <p className="muted">No record addresses this claim.</p>;
@@ -198,7 +209,7 @@ export function Evidence({ evidence }) {
             {item.stance === 'supports' ? 'Says yes' : item.stance === 'contradicts' ? 'Says no' : 'Quote'}
           </span>
           <span>
-            <span className="evidence__quote">“{item.quote}”</span>{' '}
+            <span className="evidence__quote">“{readableQuote(item.quote)}”</span>{' '}
             <span className="evidence__source">
               ·{' '}
               {item.url ? (

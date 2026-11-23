@@ -22,7 +22,7 @@ import { checkers, checkAndRecord } from './actions.js';
 import { extractClaims } from './extract.js';
 import { normaliseClaims } from './text.js';
 import { EVAL_SET } from './evalSet.js';
-import { buildSelfTest, loadSelfTest } from './selftest.js';
+import { buildSelfTest, loadSelfTest, saveSelfTestRun } from './selftest.js';
 
 const resolver = new Resolver();
 
@@ -194,6 +194,8 @@ resolver.define('checkClaim', async ({ payload, context }) => {
 resolver.define('getSelfTest', async ({ context }) => ({ set: (await loadSelfTest(context.accountId)) ?? null }));
 
 resolver.define('buildSelfTest', async ({ context }) => buildSelfTest(context.accountId));
+
+resolver.define('saveSelfTestRun', async ({ payload, context }) => saveSelfTestRun(context.accountId, payload?.results));
 
 resolver.define('runSelfTestCase', async ({ payload, context }) => {
   const set = await loadSelfTest(context.accountId);

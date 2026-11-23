@@ -60,10 +60,13 @@ Open the Groundcheck page (Apps → Groundcheck): counts of wrong claims caught,
 your receipts. "Receipts are private to whoever made them, because they can
 quote pages others can't read, and they're deleted after 90 days."
 
-## 3:15–3:45 Accuracy eval
+## 3:15–3:45 Accuracy
 
-Scroll to **Accuracy eval**, press **Run eval**, let it fill in (speed up the
-recording). "64 claims with known answers, full of traps. 64 out of 64."
+Scroll to **Accuracy**. On **Your site (live)**, press **Build test from this
+site**, then **Run test**, and let it fill in (speed up the recording). "It
+builds its own test from this site's issues, pages and teams, true facts and
+copies with one value changed. 24 out of 24." Switch to **Demo data**: "And 65
+hand-written claims full of traps. 65 out of 65."
 
 ## 3:45–4:10 Everywhere
 

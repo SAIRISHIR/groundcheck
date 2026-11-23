@@ -135,3 +135,26 @@ export async function buildSelfTest(accountId) {
 
 /** The current user's stored self-test, or null. */
 export const loadSelfTest = (accountId) => kvs.get(storeKey(accountId));
+
+/**
+ * Keep the latest run's summary (ids, verdicts, pass/fail, timings) with the
+ * test, so the score is still there after a reload.
+ */
+export async function saveSelfTestRun(accountId, results) {
+  const set = await loadSelfTest(accountId);
+  if (!set) return null;
+  const known = new Set(set.cases.map((c) => c.id));
+  const lastRun = {
+    at: new Date().toISOString(),
+    results: (Array.isArray(results) ? results : [])
+      .filter((r) => known.has(r?.id))
+      .map((r) => ({
+        id: r.id,
+        got: String(r.got).slice(0, 20),
+        pass: Boolean(r.pass),
+        ms: Number.isFinite(r.ms) ? Math.round(r.ms) : null,
+      })),
+  };
+  await kvs.set(storeKey(accountId), { ...set, lastRun });
+  return lastRun;
+}
