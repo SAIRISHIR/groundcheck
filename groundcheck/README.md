@@ -64,6 +64,14 @@ checks every quote:
 1. The quote must appear **word for word** in the document the judge cites.
 2. The quote must share meaningful words with the claim.
 3. The cited document must be one we actually gave the judge.
+4. The judge's label (supports or contradicts) must agree with the quote's
+   **whole sentence**. Code widens every quote to its full sentence, so words
+   like "no longer" can't be cut off. A sentence can only support a claim if
+   it states every value the claim asserts (numbers, percentages, dates,
+   multi-word names) without negating it. A different value of the same kind
+   ("5 December 2026" against a claimed "1 November 2025"), or a negation of
+   the claimed fact, turns the label into *contradicts*; a "contradicts" label
+   on a sentence that states exactly the claimed values is thrown away.
 
 Quotes that fail are thrown away, and **the verdict is computed in code from
 the quotes that survive**: only supporting quotes means Verified, only

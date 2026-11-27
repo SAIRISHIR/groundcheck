@@ -19,10 +19,10 @@ import api, { route } from '@forge/api';
 import { kvs } from '@forge/kvs';
 import { readPage } from './confluence.js';
 import { GRAPH_QUERIES, runGraphQuery, nodeName, userAri } from './graph.js';
-import { numericSentences, perturbNumber } from './text.js';
+import { negateSentence, numericSentences, perturbNumber } from './text.js';
 
 const JIRA_ISSUES = 4; // 4 issues x (status true/false + assignee true/false) = up to 16 cases
-const PAGES = 3; // 3 pages x (true + changed sentence) = up to 6 AI-judged cases
+const PAGES = 3; // 3 pages x (true + number changed + negated) = up to 9 AI-judged cases
 
 const storeKey = (accountId) => `selftest:${accountId}`;
 
@@ -83,18 +83,26 @@ async function docCases() {
     .filter((h) => h.id && !/archiv|deprecated|obsolete/i.test(h.title));
 
   const cases = [];
+  let pagesUsed = 0;
   // Read pages one at a time until we have enough pages with a usable
   // sentence, looking at no more than 10 pages to stay well inside the time limit.
   for (const hit of hits.slice(0, 10)) {
-    if (cases.length >= PAGES * 2) break;
+    if (pagesUsed >= PAGES) break;
     const page = await readPage(hit.id);
     const sentence = page && numericSentences(page.text, 1)[0];
     const changed = sentence && perturbNumber(sentence);
     if (!sentence || !changed) continue;
+    pagesUsed += 1;
     const from = `from "${page.title}"`;
     // A true sentence that another record disagrees with is correctly a conflict.
     cases.push({ checker: 'doc', input: { claim: sentence }, claim: sentence, accept: ['verified', 'conflict'], note: `${from}, as written` });
     cases.push({ checker: 'doc', input: { claim: changed }, claim: changed, accept: ['contradicted', 'conflict'], note: `${from}, number changed` });
+    // A harder trap: the same sentence with "not" added. Every value still
+    // matches the page, so only the negation tells the two apart.
+    const negated = negateSentence(sentence);
+    if (negated) {
+      cases.push({ checker: 'doc', input: { claim: negated }, claim: negated, accept: ['contradicted', 'conflict'], note: `${from}, negated` });
+    }
   }
   return cases;
 }

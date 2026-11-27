@@ -18,7 +18,15 @@
  * the verdict is "conflict" and both sides are shown.
  */
 import { callLlm } from './llm.js';
-import { checkEvidence, currentEvidence, decideVerdict, isArchivedDoc, parseJudgeReply } from './text.js';
+import {
+  checkEvidence,
+  crossCheckStance,
+  currentEvidence,
+  decideVerdict,
+  expandToSentence,
+  isArchivedDoc,
+  parseJudgeReply,
+} from './text.js';
 
 const SYSTEM_PROMPT = `You are a strict fact-checking judge.
 You receive ONE claim and some documents. Find the sentences that support the
@@ -43,7 +51,8 @@ Rules:
 - Pages marked archived or describing an older release are out of date. Do not
   cite them for claims about the current release.
 - Every quote must be copied EXACTLY, character for character, from one
-  document, and be the shortest sentence, table row or line that proves it.
+  document, and be the WHOLE sentence, table row or line that proves it.
+  Never cut words such as "not", "no longer" or "previously" out of a quote.
 - If nothing addresses the claim, return an empty evidence list.
 
 Reply with JSON only, no other text:
@@ -76,13 +85,34 @@ export async function judgeClaim(claim, docs) {
   }
 
   // Check every proposed quote in code; keep only the ones that hold up.
+  //   1. checkEvidence: the quote is real (word for word) and on topic.
+  //   2. crossCheckStance: the judge's "supports"/"contradicts" label agrees
+  //      with the values and negation in the quote's WHOLE sentence. A wrong
+  //      label is corrected or the quote is thrown away (see text.js).
   const kept = [];
   const rejected = [];
+  let adjusted = 0;
   for (const item of proposal.evidence.slice(0, 6)) {
     if (!['supports', 'contradicts'].includes(item?.stance)) continue;
     const check = checkEvidence(item, docs, claim);
-    if (check.ok) kept.push({ ...item, doc: check.page, archived: isArchivedDoc(check.page) });
-    else rejected.push(check.why);
+    if (!check.ok) {
+      rejected.push(check.why);
+      continue;
+    }
+    const kind = check.page.kind ?? 'confluence';
+    // Jira records are already one complete line; pages get the full sentence.
+    const sentence = kind === 'jira' ? String(item.quote) : expandToSentence(check.page.text, item.quote);
+    const stance = crossCheckStance(claim, sentence, item.stance, kind);
+    if (!stance.stance) {
+      rejected.push(stance.why);
+      continue;
+    }
+    if (stance.adjusted) {
+      adjusted += 1;
+      // No claim text in logs, only what changed.
+      console.log(JSON.stringify({ event: 'stance-adjusted', from: item.stance, to: stance.stance }));
+    }
+    kept.push({ ...item, quote: sentence, stance: stance.stance, doc: check.page, archived: isArchivedDoc(check.page) });
   }
 
   const searched = docs.map((d) => d.title).join(', ');
@@ -116,10 +146,11 @@ export async function judgeClaim(claim, docs) {
   const reason =
     String(proposal.reason ?? '').slice(0, 300) +
     (ignoredArchived ? ' (An archived page says otherwise; current pages take precedence.)' : '') +
-    (items.some((i) => i.archived) ? ' (The only source is an archived page.)' : '');
+    (items.some((i) => i.archived) ? ' (The only source is an archived page.)' : '') +
+    (adjusted ? ' (Groundcheck\'s value check corrected how the AI read a quote.)' : '');
   return {
     verdict: final,
     reason,
-    evidence: { source: 'documents', items, model: reply.model },
+    evidence: { source: 'documents', items, model: reply.model, stanceAdjusted: adjusted },
   };
 }

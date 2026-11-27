@@ -96,5 +96,8 @@ export async function readPage(id, maxChars = 6000) {
     text: storageToText(page.body?.storage?.value).slice(0, maxChars),
     url: page._links?.webui ? `/wiki${page._links.webui}` : null,
     lastUpdated: page.version?.createdAt ?? null,
+    // 'current', 'archived', 'draft', ... Confluence's own lifecycle status.
+    // isArchivedDoc (text.js) treats 'archived' pages as out of date.
+    status: page.status ?? null,
   };
 }

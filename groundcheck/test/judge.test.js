@@ -6,6 +6,12 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   checkEvidence,
+  crossCheckStance,
+  expandToSentence,
+  extractValues,
+  focusClause,
+  isNegated,
+  negateSentence,
   decideVerdict,
   isArchivedDoc,
   jiraRecordText,
@@ -170,6 +176,131 @@ test('an archived page cannot outvote the current one', () => {
   assert.equal(decideVerdict([{ stance: 'supports', archived: true }]), 'verified');
   assert.equal(isArchivedDoc({ title: 'Checkout v1 launch plan (2025, archived)' }), true);
   assert.equal(isArchivedDoc({ kind: 'jira', title: 'DEMO-1 archived work' }), false);
+});
+
+test('archived status from Confluence counts, not just the title', () => {
+  assert.equal(isArchivedDoc({ title: 'Checkout plan', status: 'archived' }), true);
+  assert.equal(isArchivedDoc({ title: 'Checkout plan (superseded)' }), true);
+  assert.equal(isArchivedDoc({ title: 'Checkout plan', status: 'current' }), false);
+});
+
+// --- Stance check: code re-checks the judge's supports/contradicts label ----
+
+test('values are extracted by kind, skipping names like v2, 2x and DEMO-3', () => {
+  const v = extractValues('Checkout v2 at 2x traffic launches on 5 December 2026 at 1.9% (DEMO-3)');
+  assert.deepEqual([...v.num], ['5']);
+  assert.deepEqual([...v.month], ['12']);
+  assert.deepEqual([...v.year], ['2026']);
+  assert.deepEqual([...v.pct], ['1.9']);
+});
+
+test('dates match across formats and ordinals', () => {
+  const a = extractValues('launches on 5 December 2026');
+  for (const other of ['launches on December 5, 2026', 'launches on 2026-12-05', 'launches on 5th Dec 2026']) {
+    const b = extractValues(other);
+    assert.deepEqual([...b.num], [...a.num], other);
+    assert.deepEqual([...b.month], [...a.month], other);
+    assert.deepEqual([...b.year], [...a.year], other);
+  }
+  assert.deepEqual([...extractValues('fees of 1.9 percent').pct], ['1.9']);
+  assert.equal(extractValues('We may launch soon').month.size, 0);
+});
+
+test('a quote is widened to its whole sentence, so "no longer" cannot be cut off', () => {
+  const text = 'Background.\nWe no longer launch on 1 November 2025. The new date is 5 December 2026.';
+  assert.equal(expandToSentence(text, 'launch on 1 November 2025'), 'We no longer launch on 1 November 2025.');
+  // A quote that spans two sentences stays as it is.
+  assert.equal(expandToSentence(text, '2025. The new'), '2025. The new');
+});
+
+test('negation is detected, including contractions', () => {
+  assert.equal(isNegated('We no longer launch in November'), true);
+  assert.equal(isNegated('Apple Pay won’t ship first'), true);
+  assert.equal(isNegated('Kevin Campbell owns rollback'), false);
+});
+
+test('a "supports" label on a negated sentence becomes "contradicts"', () => {
+  const r = crossCheckStance(
+    'Checkout v2 launches on 1 November 2025',
+    'We no longer launch checkout v2 on 1 November 2025.',
+    'supports'
+  );
+  assert.deepEqual(r, { stance: 'contradicts', adjusted: true });
+});
+
+test('negation of a DIFFERENT value does not flip support', () => {
+  const claim = 'Checkout v2 launches on 5 December 2026';
+  const sentence = 'Checkout v2 launches on 5 December 2026, not 1 November 2025 as first planned.';
+  assert.equal(focusClause(claim, sentence), 'Checkout v2 launches on 5 December 2026');
+  assert.deepEqual(crossCheckStance(claim, sentence, 'supports'), { stance: 'supports', adjusted: false });
+});
+
+test('"was planned ... but moved" contradicts the old date', () => {
+  const r = crossCheckStance(
+    'Checkout v2 launches on 1 November 2025',
+    'Checkout v2 was planned for 1 November 2025 but moved to 5 December 2026.',
+    'supports'
+  );
+  assert.equal(r.stance, 'contradicts');
+});
+
+test('a "supports" label with a different value of the same kind becomes "contradicts"', () => {
+  const r = crossCheckStance(
+    'The vendor fee is 2.9% per card payment',
+    'Transaction fees stay at 1.9% per card payment.',
+    'supports'
+  );
+  assert.deepEqual(r, { stance: 'contradicts', adjusted: true });
+});
+
+test('a sentence that does not state the claimed value cannot support it', () => {
+  const r = crossCheckStance('Checkout v2 launches on 5 December 2026', 'Checkout v2 launches soon.', 'supports');
+  assert.equal(r.stance, null);
+  // A wrong name can't be supported either.
+  assert.equal(crossCheckStance('Ryan Lee owns rollback', 'Kevin Campbell owns rollback.', 'supports').stance, null);
+});
+
+test('a correct "supports" label is kept', () => {
+  assert.deepEqual(
+    crossCheckStance('The vendor fee is 1.9% per card payment', 'Transaction fees stay at 1.9% per card payment.', 'supports'),
+    { stance: 'supports', adjusted: false }
+  );
+  assert.deepEqual(
+    crossCheckStance('Apple Pay ships before Google Pay', 'Apple Pay ships before Google Pay, because most of our mobile users are on iOS.', 'supports'),
+    { stance: 'supports', adjusted: false }
+  );
+});
+
+test('a "contradicts" label on a sentence stating exactly the claimed values is dropped', () => {
+  const r = crossCheckStance(
+    'Checkout v2 launches on 5 December 2026',
+    'Checkout v2 launches to all customers on 5 December 2026.',
+    'contradicts'
+  );
+  assert.equal(r.stance, null);
+  // A real contradiction is kept.
+  assert.equal(
+    crossCheckStance('Checkout v2 launches on 1 November 2025', 'Checkout v2 launches to all customers on 5 December 2026.', 'contradicts').stance,
+    'contradicts'
+  );
+  // A wrong name with no values is left to the judge.
+  assert.equal(crossCheckStance('Adyen is the payment processor', 'We use Stripe as the payment processor.', 'contradicts').stance, 'contradicts');
+});
+
+test('the self-test can turn a sentence around', () => {
+  assert.equal(negateSentence('The launch is on 5 December 2026.'), 'The launch is not on 5 December 2026.');
+  assert.equal(negateSentence('Transaction fees stay at 1.9% per card payment.'), null);
+  assert.equal(negateSentence('We will not launch in 2025.'), null);
+  // A negated claim against the original sentence must never be supported.
+  const r = crossCheckStance('The launch is not on 5 December 2026.', 'The launch is on 5 December 2026.', 'supports');
+  assert.equal(r.stance, 'contradicts');
+});
+
+test('Jira records are not re-checked: they are structured lines', () => {
+  assert.deepEqual(
+    crossCheckStance('Apple Pay ships before Google Pay', 'DEMO-3 | Add Google Pay to checkout | Story | Status: Done', 'contradicts', 'jira'),
+    { stance: 'contradicts', adjusted: false }
+  );
 });
 
 // --- Check an answer: the model's claim split is validated in code ----------
